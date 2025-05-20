@@ -1,0 +1,676 @@
+- name: edc_sites
+  ordinal: 2
+  active: true
+  sort_column: site_number
+  key_column: c_site_key
+  columns:
+    - name: site_number
+      dataType: number
+      ordinal: 1
+      active: true
+      filterable: true
+      sortable: true
+    - name: site_name
+      dataType: text
+      ordinal: 2
+      active: true
+      filterable: true
+      sortable: true
+    - name: site_status
+      dataType: text
+      ordinal: 3
+      active: true
+      filterable: true
+      sortable: true
+    - name: phi_opt_out
+      dataType: text
+      ordinal: 4
+      active: true
+      filterable: true
+      sortable: true
+    - name: c_is_active
+      dataType: text
+      ordinal: 5
+      active: true
+      filterable: true
+      sortable: true
+    - name: study_acronym
+      dataType: text      
+      ordinal: 6
+      active: true
+      filterable: true
+      sortable: true
+    - name: source_acronym
+      dataType: text      
+      ordinal: 7
+      active: true
+      filterable: true
+      sortable: true
+    - name: c_site_key
+      dataType: text      
+      ordinal: 8
+      active: true
+      filterable: true
+      sortable: true
+
+- name: edc_subjects
+  ordinal: 1
+  active: true
+  sort_column: subject_number
+  key_column: c_subject_key
+  columns:
+    - name: subject_number
+      dataType: text    
+      ordinal: 2
+      active: true
+      filterable: true
+      sortable: true
+    - name: c_is_consented
+      dataType: text
+      ordinal: 1
+      active: true
+      filterable: true
+      sortable: true
+    - name: study_acronym
+      dataType: text      
+      ordinal: 3
+      active: true
+      filterable: true
+      sortable: true
+    - name: source_acronym
+      dataType: text      
+      ordinal: 4
+      active: true
+      filterable: true
+      sortable: true
+    - name: c_subject_key
+      dataType: text      
+      ordinal: 5
+      active: true
+      filterable: true
+      sortable: true
+
+- name: edc_event_instances
+  ordinal: 3
+  active: true
+  sort_column: c_event_created_date
+  key_column: c_edc_event_instance_key
+  columns:
+    - name: site_number
+      dataType: number      
+      ordinal: 1
+      active: true
+      filterable: true
+      sortable: true
+    - name: subject_number
+      dataType: text    
+      ordinal: 2
+      active: true
+      filterable: true
+      sortable: true
+    - name: edc_event_class
+      dataType: text
+      ordinal: 3
+      active: true
+      filterable: true
+      sortable: true
+    - name: edc_event_type_acronym
+      dataType: text
+      ordinal: 4
+      active: true
+      filterable: true
+      sortable: true
+    - name: edc_event_ordinal
+      dataType: number
+      ordinal: 5
+      active: true
+      filterable: true
+      sortable: true
+    - name: c_edc_event_ui_label
+      dataType: text
+      ordinal: 6
+      active: true
+      filterable: true
+      sortable: true
+    - name: c_days_since_prev_visit
+      dataType: number
+      ordinal: 7
+      active: true
+      filterable: true
+      sortable: true
+    - name: c_event_is_complete
+      dataType: boolean
+      ordinal: 8
+      active: true
+      filterable: true
+      sortable: true
+    - name: c_event_completion_date
+      dataType: date
+      ordinal: 9
+      active: true
+      filterable: true
+      sortable: true
+    - name: c_has_subject_facing_values
+      dataType: boolean
+      ordinal: 10
+      active: true
+      filterable: true
+      sortable: true
+    - name: c_has_required_current
+      dataType: boolean
+      ordinal: 11
+      active: true
+      filterable: true
+      sortable: true
+    - name: c_all_required_current_complete
+      dataType: boolean
+      ordinal: 12
+      active: true
+      filterable: true
+      sortable: true
+    - name: c_is_empty_event
+      dataType: boolean
+      ordinal: 13
+      active: true
+      filterable: true
+      sortable: true
+    - name: c_edc_event_instance_key
+      dataType: text
+      ordinal: 14
+      active: true
+      filterable: true
+      sortable: true
+    - name: c_site_key
+      dataType: text
+      ordinal: 15
+      active: true
+      filterable: true
+      sortable: true
+    - name: c_subject_key
+      dataType: text
+      ordinal: 16
+      active: true
+      filterable: true
+      sortable: true
+    - name: c_event_created_date
+      dataType: timestamptz
+      ordinal: 17
+      active: true
+      filterable: true
+      sortable: true
+    - name: study_acronym
+      dataType: text      
+      ordinal: 18
+      active: true
+      filterable: true
+      sortable: true
+    - name: source_acronym
+      dataType: text      
+      ordinal: 19
+      active: true
+      filterable: true
+      sortable: true
+
+- name: edc_crf_instances
+  ordinal: 4
+  active: true
+  sort_column: c_crf_created_date
+  key_column: c_crf_instance_key
+  columns:
+  #   - name: site_number
+  #     dataType: number      
+  #     ordinal: 1
+  #     active: true
+  #     filterable: true
+  #     sortable: true
+    - name: subject_number
+      dataType: text    
+      ordinal: 2
+      active: true
+      filterable: true
+      sortable: true
+    - name: edc_event_class
+      dataType: text
+      ordinal: 3
+      active: true
+      filterable: true
+      sortable: true
+    - name: edc_event_type_acronym
+      dataType: text
+      ordinal: 4
+      active: true
+      filterable: true
+      sortable: true
+    - name: edc_crf_type_acronym
+      dataType: text
+      ordinal: 5
+      active: true
+      filterable: true
+      sortable: true
+    - name: edc_crf_ordinal
+      dataType: number
+      ordinal: 6
+      active: true
+      filterable: true
+      sortable: true
+    - name: c_edc_crf_ui_label
+      dataType: text
+      ordinal: 7
+      active: true
+      filterable: true
+      sortable: true
+    - name: c_crf_is_complete
+      dataType: boolean
+      ordinal: 8
+      active: true
+      filterable: true
+      sortable: true
+    - name: c_is_crf_hidden
+      dataType: boolean
+      ordinal: 9
+      active: true
+      filterable: true
+      sortable: true
+    - name: c_is_required_current
+      dataType: boolean
+      ordinal: 10
+      active: true
+      filterable: true
+      sortable: true
+    - name: c_edc_event_instance_key
+      dataType: text
+      ordinal: 11
+      active: true
+      filterable: true
+      sortable: true
+    - name: c_crf_instance_key
+      dataType: text
+      ordinal: 12
+      active: true
+      filterable: true
+      sortable: true
+    # - name: c_site_key
+    #   dataType: text
+    #   ordinal: 13
+    #   active: true
+    #   filterable: true
+    #   sortable: true
+    - name: c_subject_key
+      dataType: text
+      ordinal: 14
+      active: true
+      filterable: true
+      sortable: true
+    - name: c_crf_created_date
+      dataType: timestamptz
+      ordinal: 15
+      active: true
+      filterable: true
+      sortable: true
+    - name: c_crf_earliest_complete_date
+      dataType: timestamptz
+      ordinal: 16
+      active: true
+      filterable: true
+      sortable: true
+
+- name: edc_current_facts
+  ordinal: 5
+  active: true
+  sort_column: c_fact_created_date
+  key_column: c_edc_current_row_key
+  columns:
+    - name: site_number
+      dataType: number      
+      ordinal: 1
+      active: true
+      filterable: true
+      sortable: true
+    - name: subject_number
+      dataType: text    
+      ordinal: 2
+      active: true
+      filterable: true
+      sortable: true
+    - name: edc_event_type_acronym
+      dataType: text
+      ordinal: 3
+      active: true
+      filterable: true
+      sortable: true
+    - name: edc_event_ordinal
+      dataType: number
+      ordinal: 4
+      active: true
+      filterable: true
+      sortable: true
+    - name: edc_crf_type_acronym
+      dataType: text
+      ordinal: 5
+      active: true
+      filterable: true
+      sortable: true
+    - name: edc_crf_ordinal
+      dataType: number
+      ordinal: 6
+      active: true
+      filterable: true
+      sortable: true
+    - name: edc_group_type_acronym
+      dataType: text
+      ordinal: 7
+      active: true
+      filterable: true
+      sortable: true
+    - name: edc_group_ordinal
+      dataType: number
+      ordinal: 8
+      active: true
+      filterable: true
+      sortable: true
+    - name: edc_question_acronym
+      dataType: text
+      ordinal: 9
+      active: true
+      filterable: true
+      sortable: true
+    - name: normalized_value
+      dataType: text
+      filter: false
+      ordinal: 10
+      active: true
+      filterable: true
+      sortable: true
+    - name: study_acronym
+      dataType: text      
+      ordinal: 11
+      active: true
+      filterable: true
+      sortable: true
+    - name: source_acronym
+      dataType: text      
+      ordinal: 12
+      active: true
+      filterable: true
+      sortable: true
+    - name: c_edc_current_row_key
+      dataType: text      
+      ordinal: 13
+      active: true
+      filterable: true
+      sortable: true
+    - name: c_fact_created_date
+      dataType: text      
+      ordinal: 14
+      active: true
+      filterable: true
+      sortable: true
+    - name: c_edc_event_instance_key
+      dataType: text      
+      ordinal: 15
+      active: true
+      filterable: true
+      sortable: true
+    - name: c_site_key
+      dataType: text
+      ordinal: 16
+      active: true
+      filterable: true
+      sortable: true
+    - name: c_subject_key
+      dataType: text
+      ordinal: 17
+      active: true
+      filterable: true
+      sortable: true
+    - name: c_crf_instance_key
+      dataType: text      
+      ordinal: 18
+      active: true
+      filterable: true
+      sortable: true
+
+- name: dw_sites
+  ordinal: 6
+  active: true
+  sort_column: site_number
+  key_column: c_site_key
+  columns:
+    - name: site_number
+      dataType: number
+      ordinal: 1
+      active: true
+      filterable: true
+      sortable: true
+    - name: site_name
+      dataType: text
+      ordinal: 2
+      active: true
+      filterable: true
+      sortable: true
+    - name: site_status
+      dataType: text
+      ordinal: 3
+      active: true
+      filterable: true
+      sortable: true
+    - name: phi_opt_out
+      dataType: text
+      ordinal: 4
+      active: true
+      filterable: true
+      sortable: true
+    - name: c_is_active
+      dataType: text
+      ordinal: 5
+      active: true
+      filterable: true
+      sortable: true
+    - name: parent_study_acronym
+      dataType: text      
+      ordinal: 6
+      active: true
+      filterable: true
+      sortable: true
+    - name: c_site_key
+      dataType: text      
+      ordinal: 7
+      active: true
+      filterable: true
+      sortable: true
+
+- name: dw_subjects
+  ordinal: 7
+  active: true
+  sort_column: subject_number
+  key_column: c_subject_key
+  columns:
+    - name: subject_number
+      dataType: text    
+      ordinal: 1
+      active: true
+      filterable: true
+      sortable: true
+    - name: c_site_number
+      dataType: text    
+      ordinal: 2
+      active: true
+      filterable: true
+      sortable: true
+    - name: c_is_consented
+      dataType: text 
+      ordinal: 3
+      active: true
+      filterable: true
+      sortable: true
+    - name: parent_study_acronym
+      dataType: text      
+      ordinal: 4
+      active: true
+      filterable: true
+      sortable: true
+    - name: c_site_key
+      dataType: text      
+      ordinal: 5
+      active: true
+      filterable: true
+      sortable: true
+    - name: c_subject_key
+      dataType: text      
+      ordinal: 6
+      active: true
+      filterable: true
+      sortable: true
+
+- name: dw_subject_properties
+  ordinal: 8
+  active: true
+  sort_column: subject_number
+  key_column: subject_number
+  columns:
+    # - name: site_number
+    #   dataType: number      
+    #   ordinal: 1
+    #   active: true
+    #   filterable: true
+    #   sortable: true
+    - name: subject_number
+      dataType: text    
+      ordinal: 2
+      active: true
+      filterable: true
+      sortable: true
+    # - name: c_property_created_date
+    #   dataType: timestamptz
+    #   ordinal: 3
+    #   active: true
+    #   filterable: true
+    #   sortable: true
+    # - name: c_site_key
+    #   dataType: text
+    #   ordinal: 4
+    #   active: true
+    #   filterable: true
+    #   sortable: true
+    - name: c_subject_key
+      dataType: text
+      ordinal: 5
+      active: true
+      filterable: true
+      sortable: true
+    # - name: c_subject_property_key
+    #   dataType: text      
+    #   ordinal: 6
+    #   active: true
+    #   filterable: true
+    #   sortable: true
+
+- name: dw_event_instances
+  ordinal: 9
+  active: true
+  sort_column: c_event_created_date
+  key_column: c_dw_event_instance_key
+  columns:
+    - name: site_number
+      dataType: number      
+      ordinal: 1
+      active: true
+      filterable: true
+      sortable: true
+    - name: subject_number
+      dataType: text    
+      ordinal: 2
+      active: true
+      filterable: true
+      sortable: true
+    - name: dw_event_class
+      dataType: text
+      ordinal: 3
+      active: true
+      filterable: true
+      sortable: true
+    - name: dw_event_type_acronym
+      dataType: text
+      ordinal: 4
+      active: true
+      filterable: true
+      sortable: true
+    - name: c_effective_event_date
+      dataType: text
+      ordinal: 5
+      active: true
+      filterable: true
+      sortable: true
+    - name: c_provider_id
+      dataType: text
+      ordinal: 6
+      active: true
+      filterable: true
+      sortable: true
+    - name: c_tae_date
+      dataType: text
+      ordinal: 7
+      active: true
+      filterable: true
+      sortable: true
+    - name: c_exit_date
+      dataType: text
+      ordinal: 8
+      active: true
+      filterable: true
+      sortable: true
+    - name: c_event_completion_date
+      dataType: text
+      ordinal: 9
+      active: true
+      filterable: true
+      sortable: true
+    - name: c_event_is_complete
+      dataType: text
+      ordinal: 10
+      active: true
+      filterable: true
+      sortable: true
+    - name: c_event_completion_date
+      dataType: text
+      ordinal: 11
+      active: true
+      filterable: true
+      sortable: true
+    - name: c_event_completion_date
+      dataType: text
+      ordinal: 12
+      active: true
+      filterable: true
+      sortable: true
+    - name: c_days_since_prev_visit
+      dataType: text
+      ordinal: 13
+      active: true
+      filterable: true
+      sortable: true
+    - name: c_dw_event_instance_key
+      dataType: text      
+      ordinal: 14
+      active: true
+      filterable: true
+      sortable: true
+    - name: c_site_key
+      dataType: text
+      ordinal: 15
+      active: true
+      filterable: true
+      sortable: true
+    - name: c_subject_key
+      dataType: text
+      ordinal: 16
+      active: true
+      filterable: true
+      sortable: true
+    - name: c_event_created_date
+      dataType: timestamptz
+      ordinal: 17
+      active: true
+      filterable: true
+      sortable: true
+
