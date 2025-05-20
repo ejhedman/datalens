@@ -39,19 +39,29 @@ export default function DataNavigator({ config, title }: DataNavigatorProps) {
   })) || [];
 
   return (
-    <div className="flex h-full bg-gray-100">
-      <Sidebar 
-        selectedTable={selectedTable} 
-        onTableSelect={setSelectedTable}
-        tables={config.tables}
-        title={title}
-      />
-      <main className="flex-1 overflow-auto p-4">
-        <DataTable 
-          table={selectedTable || undefined}
-          columns={columns}
+    <div className="flex flex-col h-full bg-gray-100">
+      <div className="flex flex-1 min-h-0">
+        <Sidebar 
+          selectedTable={selectedTable} 
+          onTableSelect={setSelectedTable}
+          tables={config.tables}
+          title={title}
         />
-      </main>
+        <main className="flex-1 overflow-hidden p-4">
+          <DataTable 
+            table={selectedTable || undefined}
+            columns={columns}
+          />
+        </main>
+      </div>
+      <footer className="h-16 bg-white border-t border-gray-200 flex items-center justify-between px-4">
+        <div className="text-sm text-gray-600">
+          DataLens v1.0
+        </div>
+        <div className="text-sm text-gray-600">
+          © 2024 DataLens
+        </div>
+      </footer>
     </div>
   );
 } 

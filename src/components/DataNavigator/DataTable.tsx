@@ -1,9 +1,29 @@
 'use client';
 
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { ChevronUp, ChevronDown, Filter, Loader2, X } from 'lucide-react';
-import { TableContainer, Table, Paper } from '@mui/material';
+import { ChevronUp, ChevronDown, Filter, Loader2, X, Code } from 'lucide-react';
+import { TableContainer, Table, Paper, Dialog, DialogTitle, DialogContent, IconButton, Tooltip, Box, Typography } from '@mui/material';
+import { styled } from '@mui/material/styles';
+import ContentCopyIcon from '@mui/icons-material/ContentCopy';
+import DataObjectIcon from '@mui/icons-material/DataObject';
 import { SqlDisplay } from './SqlDisplay';
+
+const SqlDialog = styled(Dialog)(({ theme }) => ({
+  '& .MuiDialog-paper': {
+    minWidth: '600px',
+    maxWidth: '80vw',
+  },
+}));
+
+const SqlContent = styled('pre')(({ theme }) => ({
+  margin: 0,
+  fontFamily: 'monospace',
+  whiteSpace: 'pre-wrap',
+  wordBreak: 'break-word',
+  padding: theme.spacing(2),
+  backgroundColor: theme.palette.grey[100],
+  borderRadius: theme.shape.borderRadius,
+}));
 
 interface Column {
   name: string;
@@ -151,6 +171,8 @@ export default function DataTable({ table, columns: configuredColumns }: DataTab
   const [activeFilter, setActiveFilter] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [totalCount, setTotalCount] = useState<number>(0);
+  const [showSqlDialog, setShowSqlDialog] = useState(false);
+  const [showSubstituted, setShowSubstituted] = useState(false);
   const observer = useRef<IntersectionObserver | null>(null);
   const lastRowRef = useCallback((node: HTMLTableRowElement) => {
     if (loading) return;
@@ -303,6 +325,22 @@ export default function DataTable({ table, columns: configuredColumns }: DataTab
     return Array.from(new Set(data?.data.map(row => row[field]) || []));
   };
 
+  const handleCopySql = () => {
+    if (!data?.query) return;
+    const textToCopy = showSubstituted ? substituteParams(data.query.sql, data.query.params) : data.query.sql;
+    navigator.clipboard.writeText(textToCopy);
+    setShowSqlDialog(false);
+  };
+
+  const substituteParams = (query: string, params: any[]): string => {
+    let result = query;
+    params.forEach((param, index) => {
+      const value = typeof param === 'string' ? `'${param}'` : param;
+      result = result.replace(`$${index + 1}`, value);
+    });
+    return result;
+  };
+
   const tableStyles = {
     table: {
       width: 'fit-content',
@@ -416,8 +454,19 @@ export default function DataTable({ table, columns: configuredColumns }: DataTab
     <div className="flex flex-col h-full">
       <div className="flex-none">
         <div className="p-2 border-b bg-gray-50 flex justify-between items-center">
-          <div className="text-sm font-medium text-gray-700">
-            {table}
+          <div className="flex items-center gap-2">
+            {data?.query && (
+              <button
+                onClick={() => setShowSqlDialog(true)}
+                className="p-1 hover:bg-gray-200 rounded"
+                title="Show SQL"
+              >
+                <Code size={16} />
+              </button>
+            )}
+            <div className="text-sm font-medium text-gray-700">
+              {table}
+            </div>
           </div>
           <div className="text-sm text-gray-600">
             {data?.data.length} of {totalCount} rows
@@ -466,106 +515,142 @@ export default function DataTable({ table, columns: configuredColumns }: DataTab
           </div>
         )}
       </div>
-      <div className="flex-1 min-h-0 relative">
-        <div className="absolute inset-0 overflow-auto">
-          <div className="inline-block min-w-full align-middle">
-            <table className="min-w-full divide-y divide-gray-200 text-sm">
-              <thead className="bg-gray-50 sticky top-0 z-20">
-                <tr>
-                  {sortedColumns.map(column => (
-                    <th
-                      key={column.name}
-                      className="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider bg-gray-50 sticky top-0"
-                    >
-                      <div className="flex items-center space-x-1">
-                        <span className="text-xs">{column.name}</span>
-                        <div className="flex items-center space-x-0.5">
-                          <button
-                            onClick={() => handleSort(column.name)}
-                            className="hover:text-gray-700"
-                          >
-                            {sortField === column.name ? (
-                              sortDirection === 'asc' ? (
-                                <ChevronUp size={12} />
-                              ) : (
-                                <ChevronDown size={12} />
-                              )
+      <div className="flex-1 min-h-0 overflow-auto">
+        <div className="inline-block min-w-full align-middle">
+          <table className="min-w-full divide-y divide-gray-200 text-sm">
+            <thead className="bg-gray-50 sticky top-0 z-20">
+              <tr>
+                {sortedColumns.map(column => (
+                  <th
+                    key={column.name}
+                    className="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider bg-gray-50 sticky top-0"
+                  >
+                    <div className="flex items-center space-x-1">
+                      <span className="text-xs">{column.name}</span>
+                      <div className="flex items-center space-x-0.5">
+                        <button
+                          onClick={() => handleSort(column.name)}
+                          className="hover:text-gray-700"
+                        >
+                          {sortField === column.name ? (
+                            sortDirection === 'asc' ? (
+                              <ChevronUp size={12} />
                             ) : (
-                              <ChevronUp size={12} className="text-gray-400" />
-                            )}
-                          </button>
-                          <button
-                            onClick={() => setActiveFilter(activeFilter === column.name ? null : column.name)}
-                            className={`hover:text-gray-700 ${
-                              filters[column.name]?.length ? 'text-blue-500' : ''
-                            }`}
-                          >
-                            <Filter size={12} />
-                          </button>
-                          {filters[column.name]?.length > 0 && (
-                            <button
-                              onClick={() => handleFilter(column.name, [])}
-                              className="text-red-500 hover:text-red-700"
-                            >
-                              <X size={12} />
-                            </button>
+                              <ChevronDown size={12} />
+                            )
+                          ) : (
+                            <ChevronUp size={12} className="text-gray-400" />
                           )}
-                        </div>
+                        </button>
+                        <button
+                          onClick={() => setActiveFilter(activeFilter === column.name ? null : column.name)}
+                          className={`hover:text-gray-700 ${
+                            filters[column.name]?.length ? 'text-blue-500' : ''
+                          }`}
+                        >
+                          <Filter size={12} />
+                        </button>
+                        {filters[column.name]?.length > 0 && (
+                          <button
+                            onClick={() => handleFilter(column.name, [])}
+                            className="text-red-500 hover:text-red-700"
+                          >
+                            <X size={12} />
+                          </button>
+                        )}
                       </div>
-                      {activeFilter === column.name && (
-                        <FilterDropdown
-                          table={table}
-                          column={column.name}
-                          selectedValues={filters[column.name] || []}
-                          onSelect={(values) => handleFilter(column.name, values)}
-                          onClose={() => setActiveFilter(null)}
-                          filters={filters}
-                        />
-                      )}
-                    </th>
+                    </div>
+                    {activeFilter === column.name && (
+                      <FilterDropdown
+                        table={table}
+                        column={column.name}
+                        selectedValues={filters[column.name] || []}
+                        onSelect={(values) => handleFilter(column.name, values)}
+                        onClose={() => setActiveFilter(null)}
+                        filters={filters}
+                      />
+                    )}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-200">
+              {data?.data.map((row, index) => (
+                <tr
+                  key={index}
+                  ref={index === data.data.length - 1 ? lastRowRef : undefined}
+                  className={`hover:bg-gray-50 ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}`}
+                >
+                  {sortedColumns.map(column => (
+                    <td 
+                      key={column.name} 
+                      className="px-2 py-1 whitespace-nowrap hover:bg-gray-100 cursor-pointer"
+                      onDoubleClick={() => {
+                        const value = row[column.name];
+                        if (value !== null && value !== undefined) {
+                          handleFilter(column.name, [value]);
+                        }
+                      }}
+                    >
+                      {row[column.name]}
+                    </td>
                   ))}
                 </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-200">
-                {data?.data.map((row, index) => (
-                  <tr
-                    key={index}
-                    ref={index === data.data.length - 1 ? lastRowRef : undefined}
-                    className={`hover:bg-gray-50 ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}`}
-                  >
-                    {sortedColumns.map(column => (
-                      <td 
-                        key={column.name} 
-                        className="px-2 py-1 whitespace-nowrap hover:bg-gray-100 cursor-pointer"
-                        onDoubleClick={() => {
-                          const value = row[column.name];
-                          if (value !== null && value !== undefined) {
-                            handleFilter(column.name, [value]);
-                          }
-                        }}
-                      >
-                        {row[column.name]}
-                      </td>
-                    ))}
-                  </tr>
-                ))}
-                {loading && (
-                  <tr>
-                    <td colSpan={sortedColumns.length} className="px-2 py-1 text-center">
-                      <Loader2 className="animate-spin mx-auto h-4 w-4" />
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
+              ))}
+              {loading && (
+                <tr>
+                  <td colSpan={sortedColumns.length} className="px-2 py-1 text-center">
+                    <Loader2 className="animate-spin mx-auto h-4 w-4" />
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+          <div className="h-16"></div>
         </div>
       </div>
-      {data?.query && (
-        <div className="flex-none">
-          <SqlDisplay sql={data.query.sql} params={data.query.params} />
-        </div>
-      )}
+
+      <SqlDialog
+        open={showSqlDialog}
+        onClose={() => setShowSqlDialog(false)}
+        maxWidth="md"
+        fullWidth
+      >
+        <DialogTitle className="flex items-center justify-between">
+          <span>SQL Query</span>
+          <div className="flex items-center gap-2">
+            <Tooltip title="Toggle between raw SQL and substituted values">
+              <IconButton
+                size="small"
+                onClick={() => setShowSubstituted(!showSubstituted)}
+                color={showSubstituted ? "primary" : "default"}
+              >
+                {showSubstituted ? <DataObjectIcon /> : <Code />}
+              </IconButton>
+            </Tooltip>
+            <Tooltip title="Copy to clipboard">
+              <IconButton size="small" onClick={handleCopySql}>
+                <ContentCopyIcon />
+              </IconButton>
+            </Tooltip>
+          </div>
+        </DialogTitle>
+        <DialogContent>
+          <SqlContent>
+            {data?.query && (showSubstituted ? substituteParams(data.query.sql, data.query.params) : data.query.sql)}
+          </SqlContent>
+          {data?.query?.params && data.query.params.length > 0 && !showSubstituted && (
+            <Box sx={{ mt: 2 }}>
+              <Typography variant="caption" color="text.secondary">
+                Parameters:
+              </Typography>
+              <SqlContent>
+                {JSON.stringify(data.query.params, null, 2)}
+              </SqlContent>
+            </Box>
+          )}
+        </DialogContent>
+      </SqlDialog>
     </div>
   );
 } 
