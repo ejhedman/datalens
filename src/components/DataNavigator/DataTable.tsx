@@ -493,98 +493,99 @@ export default function DataTable({ table, columns: configuredColumns }: DataTab
           </div>
         )}
       </div>
-      <div className="flex-1 min-h-0">
-        <div className="w-full">
-          <table className="min-w-full divide-y divide-gray-200 text-sm">
-            <thead className="bg-gray-50 sticky top-0 z-20">
-              <tr>
-                {sortedColumns.map(column => (
-                  <th
-                    key={column.name}
-                    className="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider bg-gray-50 sticky top-0"
-                  >
-                    <div className="flex items-center space-x-1">
-                      <span className="text-xs">{column.name}</span>
-                      <div className="flex items-center space-x-0.5">
-                        <button
-                          onClick={() => handleSort(column.name)}
-                          className="hover:text-gray-700"
-                        >
-                          {sortField === column.name ? (
-                            sortDirection === 'asc' ? (
-                              <ChevronUp size={12} />
-                            ) : (
-                              <ChevronDown size={12} />
-                            )
-                          ) : (
-                            <ChevronUp size={12} className="text-gray-400" />
-                          )}
-                        </button>
-                        <button
-                          onClick={() => setActiveFilter(activeFilter === column.name ? null : column.name)}
-                          className={`hover:text-gray-700 ${
-                            filters[column.name]?.length ? 'text-blue-500' : ''
-                          }`}
-                        >
-                          <Filter size={12} />
-                        </button>
-                        {filters[column.name]?.length > 0 && (
-                          <button
-                            onClick={() => handleFilter(column.name, [])}
-                            className="text-red-500 hover:text-red-700"
-                          >
-                            <X size={12} />
-                          </button>
-                        )}
-                      </div>
-                    </div>
-                    {activeFilter === column.name && (
-                      <FilterDropdown
-                        table={table}
-                        column={column.name}
-                        selectedValues={filters[column.name] || []}
-                        onSelect={(values) => handleFilter(column.name, values)}
-                        onClose={() => setActiveFilter(null)}
-                        filters={filters}
-                      />
-                    )}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-200">
-              {data?.data.map((row, index) => (
-                <tr
-                  key={index}
-                  ref={index === data.data.length - 1 ? lastRowRef : undefined}
-                  className={`hover:bg-gray-50 ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}`}
-                >
+      <div className="flex-1 min-h-0 relative">
+        <div className="absolute inset-0 overflow-auto">
+          <div className="min-w-full inline-block">
+            <table className="min-w-full divide-y divide-gray-200 text-sm">
+              <thead className="bg-gray-50 sticky top-0 z-20">
+                <tr>
                   {sortedColumns.map(column => (
-                    <td 
-                      key={column.name} 
-                      className="px-2 py-1 whitespace-nowrap hover:bg-gray-100 cursor-pointer"
-                      onDoubleClick={() => {
-                        const value = row[column.name];
-                        if (value !== null && value !== undefined) {
-                          handleFilter(column.name, [value]);
-                        }
-                      }}
+                    <th
+                      key={column.name}
+                      className="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider bg-gray-50 sticky top-0"
                     >
-                      {row[column.name]}
-                    </td>
+                      <div className="flex items-center space-x-1">
+                        <span className="text-xs">{column.name}</span>
+                        <div className="flex items-center space-x-0.5">
+                          <button
+                            onClick={() => handleSort(column.name)}
+                            className="hover:text-gray-700"
+                          >
+                            {sortField === column.name ? (
+                              sortDirection === 'asc' ? (
+                                <ChevronUp size={12} />
+                              ) : (
+                                <ChevronDown size={12} />
+                              )
+                            ) : (
+                              <ChevronUp size={12} className="text-gray-400" />
+                            )}
+                          </button>
+                          <button
+                            onClick={() => setActiveFilter(activeFilter === column.name ? null : column.name)}
+                            className={`hover:text-gray-700 ${
+                              filters[column.name]?.length ? 'text-blue-500' : ''
+                            }`}
+                          >
+                            <Filter size={12} />
+                          </button>
+                          {filters[column.name]?.length > 0 && (
+                            <button
+                              onClick={() => handleFilter(column.name, [])}
+                              className="text-red-500 hover:text-red-700"
+                            >
+                              <X size={12} />
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                      {activeFilter === column.name && (
+                        <FilterDropdown
+                          table={table}
+                          column={column.name}
+                          selectedValues={filters[column.name] || []}
+                          onSelect={(values) => handleFilter(column.name, values)}
+                          onClose={() => setActiveFilter(null)}
+                          filters={filters}
+                        />
+                      )}
+                    </th>
                   ))}
                 </tr>
-              ))}
-              {loading && (
-                <tr>
-                  <td colSpan={sortedColumns.length} className="px-2 py-1 text-center">
-                    <Loader2 className="animate-spin mx-auto h-4 w-4" />
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-          <div className="h-16"></div>
+              </thead>
+              <tbody className="divide-y divide-gray-200">
+                {data?.data.map((row, index) => (
+                  <tr
+                    key={index}
+                    ref={index === data.data.length - 1 ? lastRowRef : undefined}
+                    className={`hover:bg-gray-50 ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}`}
+                  >
+                    {sortedColumns.map(column => (
+                      <td 
+                        key={column.name} 
+                        className="px-2 py-1 whitespace-nowrap hover:bg-gray-100 cursor-pointer"
+                        onDoubleClick={() => {
+                          const value = row[column.name];
+                          if (value !== null && value !== undefined) {
+                            handleFilter(column.name, [value]);
+                          }
+                        }}
+                      >
+                        {row[column.name]}
+                      </td>
+                    ))}
+                  </tr>
+                ))}
+                {loading && (
+                  <tr>
+                    <td colSpan={sortedColumns.length} className="px-2 py-1 text-center">
+                      <Loader2 className="animate-spin mx-auto h-4 w-4" />
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
 
