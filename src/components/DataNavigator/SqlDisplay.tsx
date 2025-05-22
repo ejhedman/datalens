@@ -6,8 +6,6 @@ const SqlPaper = styled(Paper)(({ theme }) => ({
   padding: theme.spacing(2),
   marginTop: theme.spacing(2),
   backgroundColor: theme.palette.grey[100],
-  overflow: 'auto',
-  maxHeight: '200px',
 }));
 
 const SqlCode = styled('pre')(({ theme }) => ({

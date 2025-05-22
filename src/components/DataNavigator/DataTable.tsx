@@ -364,8 +364,6 @@ export default function DataTable({ table, columns: configuredColumns }: DataTab
       whiteSpace: 'nowrap' as const,
     },
     container: {
-      overflowX: 'auto' as const,
-      maxHeight: 'calc(100vh - 200px)',
       position: 'relative' as const,
     },
     headerCell: {
@@ -515,8 +513,8 @@ export default function DataTable({ table, columns: configuredColumns }: DataTab
           </div>
         )}
       </div>
-      <div className="flex-1 min-h-0 overflow-auto">
-        <div className="inline-block min-w-full align-middle">
+      <div className="flex-1 min-h-0">
+        <div className="w-full">
           <table className="min-w-full divide-y divide-gray-200 text-sm">
             <thead className="bg-gray-50 sticky top-0 z-20">
               <tr>

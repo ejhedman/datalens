@@ -47,7 +47,7 @@ export default function DataNavigator({ config, title }: DataNavigatorProps) {
           tables={config.tables}
           title={title}
         />
-        <main className="flex-1 overflow-hidden p-4">
+        <main className="flex-1 p-4">
           <DataTable 
             table={selectedTable || undefined}
             columns={columns}
