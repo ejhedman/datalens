@@ -10,16 +10,20 @@ import {
   Aperture
 } from 'lucide-react'
 
+type Section = 'datasources' | 'datalenses' | null
+
 const menuItems = [
   {
     name: 'Home',
     href: '/',
     icon: Home,
+    section: null,
   },
   {
     name: 'DataSources',
     href: '/datasources',
     icon: Database,
+    section: 'datasources' as Section,
   },
 ]
 
@@ -28,10 +32,16 @@ const profileItems = [
     name: 'DataLenses',
     href: '/datalenses',
     icon: Aperture,
+    section: 'datalenses' as Section,
   },
 ]
 
-export function Sidebar() {
+interface SidebarProps {
+  onSectionSelect: (section: Section) => void
+  selectedSection: Section
+}
+
+export function Sidebar({ onSectionSelect, selectedSection }: SidebarProps) {
   const [isExpanded, setIsExpanded] = useState(false)
   const [expandTimeout, setExpandTimeout] = useState<NodeJS.Timeout | null>(null)
   const pathname = usePathname()
@@ -49,6 +59,10 @@ export function Sidebar() {
       setExpandTimeout(null)
     }
     setIsExpanded(false)
+  }
+
+  const handleSectionClick = (section: Section) => {
+    onSectionSelect(section)
   }
 
   return (
@@ -75,6 +89,7 @@ export function Sidebar() {
                     ? 'bg-gray-800 text-white ring-1 ring-gray-700'
                     : 'text-gray-300 hover:bg-gray-800 hover:text-white'
                 )}
+                onClick={() => handleSectionClick(item.section)}
               >
                 <item.icon className={cn(
                   'h-6 w-6',
@@ -107,6 +122,7 @@ export function Sidebar() {
                     ? 'bg-gray-800 text-white ring-1 ring-gray-700'
                     : 'text-gray-300 hover:bg-gray-800 hover:text-white'
                 )}
+                onClick={() => handleSectionClick(item.section)}
               >
                 <item.icon className={cn(
                   'h-6 w-6',

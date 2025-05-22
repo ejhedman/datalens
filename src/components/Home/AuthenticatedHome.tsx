@@ -7,6 +7,7 @@ import { DataSourceList } from '@/components/datasources/datasource-list'
 import { DataLensList } from '@/components/datalenses/datalens-list'
 import { getCurrentDataSource } from '@/components/layout/datasource-selector'
 import { DataLens } from '@/types/datalens'
+import { usePathname } from 'next/navigation'
 
 interface DataSource {
   id: string
@@ -21,7 +22,16 @@ export default function AuthenticatedHome() {
   const [loading, setLoading] = useState(true)
   const [currentDataSourceId, setCurrentDataSourceId] = useState<string | null>(getCurrentDataSource())
   const [selectedDataLensId, setSelectedDataLensId] = useState<string | null>(null)
+  const [selectedSection, setSelectedSection] = useState<'datasources' | 'datalenses' | null>(null)
   const supabase = createClientComponentClient()
+  const pathname = usePathname()
+
+  // Clear selected section when navigating away from home
+  useEffect(() => {
+    if (pathname !== '/') {
+      setSelectedSection(null)
+    }
+  }, [pathname])
 
   useEffect(() => {
     const fetchRecentData = async () => {
@@ -92,24 +102,28 @@ export default function AuthenticatedHome() {
 
   return (
     <div className="flex h-full">
-      <Sidebar />
+      <Sidebar onSectionSelect={setSelectedSection} selectedSection={selectedSection} />
       <div className="flex-1 ml-16">
         <div className="flex h-full">
           <div className="w-64 bg-white border-r border-gray-200">
-            <DataSourceList
-              databases={recentDataSources}
-              selectedDatabaseId={currentDataSourceId}
-              onDatabaseSelect={(db) => setCurrentDataSourceId(db.id)}
-              onNewDatabase={() => {}}
-            />
-            <DataLensList
-              dataLenses={recentDataLenses}
-              selectedDataLensId={selectedDataLensId}
-              onDataLensSelect={handleDataLensSelect}
-              onNewDataLens={() => {}}
-              isLoading={loading}
-              isDataSourceSelected={!!currentDataSourceId}
-            />
+            {selectedSection === 'datasources' && (
+              <DataSourceList
+                databases={recentDataSources}
+                selectedDatabaseId={currentDataSourceId}
+                onDatabaseSelect={(db) => setCurrentDataSourceId(db.id)}
+                onNewDatabase={() => {}}
+              />
+            )}
+            {selectedSection === 'datalenses' && (
+              <DataLensList
+                dataLenses={recentDataLenses}
+                selectedDataLensId={selectedDataLensId}
+                onDataLensSelect={handleDataLensSelect}
+                onNewDataLens={() => {}}
+                isLoading={loading}
+                isDataSourceSelected={!!currentDataSourceId}
+              />
+            )}
           </div>
           <main className="flex-1 p-6">
             <div className="space-y-12">
@@ -117,6 +131,12 @@ export default function AuthenticatedHome() {
               <section>
                 <div className="flex justify-between items-center mb-6">
                   <h2 className="text-2xl font-bold text-gray-900">Recent Data Sources</h2>
+                  <button
+                    onClick={() => setSelectedSection('datasources')}
+                    className="text-blue-600 hover:text-blue-800"
+                  >
+                    View All
+                  </button>
                 </div>
                 {recentDataSources.length > 0 ? (
                   <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -144,6 +164,12 @@ export default function AuthenticatedHome() {
               <section>
                 <div className="flex justify-between items-center mb-6">
                   <h2 className="text-2xl font-bold text-gray-900">Recent Data Lenses</h2>
+                  <button
+                    onClick={() => setSelectedSection('datalenses')}
+                    className="text-blue-600 hover:text-blue-800"
+                  >
+                    View All
+                  </button>
                 </div>
                 {recentDataLenses.length > 0 ? (
                   <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
