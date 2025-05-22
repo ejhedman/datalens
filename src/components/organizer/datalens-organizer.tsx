@@ -20,6 +20,7 @@ import {
   useSortable,
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable'
+import { restrictToVerticalAxis, restrictToParentElement } from '@dnd-kit/modifiers'
 import { CSS } from '@dnd-kit/utilities'
 import React from 'react'
 
@@ -351,6 +352,7 @@ function SortableTable({
           <DndContext
             sensors={sensors}
             collisionDetection={closestCenter}
+            modifiers={[restrictToVerticalAxis, restrictToParentElement]}
             onDragEnd={(event) => {
               const { active, over } = event
               if (over && active.id !== over.id) {
