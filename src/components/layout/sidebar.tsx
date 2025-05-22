@@ -12,8 +12,8 @@ import {
 
 const menuItems = [
   {
-    name: 'Dashboard',
-    href: '/dashboard',
+    name: 'Home',
+    href: '/',
     icon: Home,
   },
   {

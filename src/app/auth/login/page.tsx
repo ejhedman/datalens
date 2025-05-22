@@ -27,7 +27,7 @@ export default function LoginPage() {
       })
 
       if (error) throw error
-      router.push('/dashboard')
+      router.push('/')
     } catch (error: any) {
       toast.error(error.message)
     } finally {

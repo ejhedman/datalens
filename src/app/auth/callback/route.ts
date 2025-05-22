@@ -63,7 +63,7 @@ export async function GET(request: Request) {
     }
 
     // If we get here, either the lens exists or was just created
-    return NextResponse.redirect(`${requestUrl.origin}/dashboard`)
+    return NextResponse.redirect(`${requestUrl.origin}/`)
   }
 
   // If no code is present, redirect to login

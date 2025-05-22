@@ -1,7 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Home } from 'lucide-react';
+import Link from 'next/link';
 
 interface Table {
   name: string;
@@ -35,6 +36,13 @@ export default function Sidebar({ selectedTable, onTableSelect, tables, title = 
         </button>
       </div>
       <nav className="p-2">
+        <Link
+          href="/"
+          className="flex items-center w-full p-2 text-left rounded-md hover:bg-gray-100 mb-2"
+        >
+          <Home size={20} className="mr-2" />
+          {!isCollapsed && "Home"}
+        </Link>
         {tables.map((table) => (
           <button
             key={table.name}
