@@ -26,6 +26,17 @@ interface DataNavigatorConfig {
   tables: Table[];
 }
 
+interface DataSource {
+  jdbc_url: string;
+  username: string;
+  password: string;
+}
+
+interface DataLensResponse {
+  datalens_name: string;
+  datasources: DataSource;
+}
+
 export default function DataNavigatorPage() {
   const [config, setConfig] = useState<DataNavigatorConfig>({ tables: [] });
   const [dataLensName, setDataLensName] = useState<string>('');
@@ -33,6 +44,7 @@ export default function DataNavigatorPage() {
   const [filters, setFilters] = useState<Record<string, any[]>>({});
   const [tableSorts, setTableSorts] = useState<Record<string, { field: string | null; direction: 'asc' | 'desc' }>>({});
   const [showSqlDialog, setShowSqlDialog] = useState(false);
+  const [dataSource, setDataSource] = useState<DataSource | null>(null);
   const params = useParams();
   const supabase = createClientComponentClient();
 
@@ -46,27 +58,37 @@ export default function DataNavigatorPage() {
   const currentSort = selectedTable ? tableSorts[selectedTable] : { field: null, direction: 'asc' as const };
 
   useEffect(() => {
-    const fetchDataLens = async () => {
+    const fetchDataLensAndSource = async () => {
       try {
         const { data: { session } } = await supabase.auth.getSession();
         if (!session) return;
 
-        const { data: dataLens, error } = await supabase
+        // Fetch the DataLens and its associated DataSource
+        const { data: dataLens, error: lensError } = await supabase
           .from('datalenses')
-          .select('datalens_name')
+          .select(`
+            datalens_name,
+            datasources (
+              jdbc_url,
+              username,
+              password
+            )
+          `)
           .eq('id', params.id)
           .single();
 
-        if (error) throw error;
+        if (lensError) throw lensError;
         if (dataLens) {
-          setDataLensName(dataLens.datalens_name);
+          const response = dataLens as unknown as DataLensResponse;
+          setDataLensName(response.datalens_name);
+          setDataSource(response.datasources);
         }
       } catch (error) {
         console.error('Error fetching DataLens:', error);
       }
     };
 
-    fetchDataLens();
+    fetchDataLensAndSource();
     loadTables().then(loadedTables => {
       setConfig({ tables: loadedTables });
     });
@@ -103,6 +125,7 @@ export default function DataNavigatorPage() {
                 <DataTable 
                   table={selectedTable || undefined}
                   columns={columns}
+                  dataSource={dataSource}
                 />
               </div>
             </main>

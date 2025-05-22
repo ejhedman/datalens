@@ -13,7 +13,16 @@ interface Column {
 
 interface DataTableProps {
   table?: string;
-  columns: Column[];
+  columns: Array<{
+    name: string;
+    type: string;
+    ordinal: number;
+  }>;
+  dataSource?: {
+    jdbc_url: string;
+    username: string;
+    password: string;
+  } | null;
 }
 
 interface FilterDropdownProps {
@@ -141,7 +150,7 @@ interface DataResponse {
   };
 }
 
-export default function DataTable({ table, columns: configuredColumns }: DataTableProps) {
+export default function DataTable({ table, columns: configuredColumns, dataSource }: DataTableProps) {
   const [data, setData] = useState<DataResponse | null>(null);
   const [loading, setLoading] = useState(false);
   const [hasMore, setHasMore] = useState(true);
@@ -219,6 +228,11 @@ export default function DataTable({ table, columns: configuredColumns }: DataTab
         params.append('lastKey', lastKey);
       }
 
+      // Add dataSource configuration if available
+      if (dataSource) {
+        params.append('dataSource', JSON.stringify(dataSource));
+      }
+
       console.log('Loading data with params:', {
         table,
         pageSize: '100',
@@ -226,7 +240,8 @@ export default function DataTable({ table, columns: configuredColumns }: DataTab
         sortDirection: sortDirection || 'asc',
         filters: JSON.stringify(filters),
         lastKey: !reset ? lastKey : 'none',
-        reset
+        reset,
+        hasDataSource: !!dataSource
       });
 
       const response = await fetch(`${baseUrl}/api/data?${params}`);

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { loadTables } from '@/lib/config';
-import { query } from '@/lib/db';
+import { query, getPool } from '@/lib/db';
 
 interface Column {
   name: string;
@@ -12,6 +12,12 @@ interface Table {
   columns: Column[];
 }
 
+interface DataSource {
+  jdbc_url: string;
+  username: string;
+  password: string;
+}
+
 export async function GET(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams;
@@ -19,6 +25,8 @@ export async function GET(request: NextRequest) {
     const column = searchParams.get('column');
     const searchTerm = searchParams.get('searchTerm') || '';
     const filters = JSON.parse(searchParams.get('filters') || '{}') as Record<string, string[]>;
+    const dataSourceStr = searchParams.get('dataSource');
+    const dataSource = dataSourceStr ? JSON.parse(dataSourceStr) as DataSource : undefined;
 
     if (!table || !column) {
       return NextResponse.json(
@@ -38,7 +46,10 @@ export async function GET(request: NextRequest) {
     }
 
     const { name, columns } = tableConfig;
-    const schema = process.env.DB_SCHEMA || 'public';
+    const schema = 'public'; // Default to public schema
+
+    // Get database pool with DataSource configuration if provided
+    const pool = await getPool(dataSource);
 
     // Verify the column exists in the table
     const columnConfig = columns.find((col: Column) => col.name === column);
@@ -107,15 +118,14 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    // Add order by and limit
-    queryText += ` ORDER BY ${column} LIMIT 1000`;
+    // Add order by
+    queryText += ` ORDER BY ${column}`;
 
-    // Execute the query
+    // Execute query
     const result = await query(queryText, queryParams);
-
     return NextResponse.json(result.map(row => row[column]));
   } catch (error) {
-    console.error('Error in distinct-values route:', error);
+    console.error('Error in distinct values route:', error);
     return NextResponse.json(
       { error: error instanceof Error ? error.message : 'Unknown error' },
       { status: 500 }

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { query } from '@/lib/db';
+import { query, getPool } from '@/lib/db';
 import { loadTables } from '@/lib/config';
 
 interface Column {
@@ -14,6 +14,12 @@ interface TableConfig {
   columns: Column[];
 }
 
+interface DataSource {
+  jdbc_url: string;
+  username: string;
+  password: string;
+}
+
 export async function GET(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams;
@@ -23,6 +29,8 @@ export async function GET(request: NextRequest) {
     const sortDirection = searchParams.get('sortDirection') || 'asc';
     const filters = JSON.parse(searchParams.get('filters') || '{}') as Record<string, string[]>;
     const lastKey = searchParams.get('lastKey');
+    const dataSourceStr = searchParams.get('dataSource');
+    const dataSource = dataSourceStr ? JSON.parse(dataSourceStr) as DataSource : undefined;
 
     if (!table) {
       return NextResponse.json(
@@ -42,7 +50,10 @@ export async function GET(request: NextRequest) {
     }
 
     const { name, sort_column, key_column, columns } = tableConfig;
-    const schema = process.env.DB_SCHEMA || 'public';
+    const schema = 'public'; // Default to public schema
+
+    // Get database pool with DataSource configuration if provided
+    const pool = await getPool(dataSource);
 
     // Log the columns we're working with
     console.log('Columns from config:', columns.map((col: Column) => col.name));

@@ -16,22 +16,48 @@ interface DbConfig {
   };
 }
 
-let pool: Pool | null = null;
+interface DataSource {
+  jdbc_url: string;
+  username: string;
+  password: string;
+}
 
-export async function getPool(): Promise<Pool> {
-  if (pool) return pool;
+let pool: Pool | null = null;
+let currentDataSource: DataSource | null = null;
+
+export async function getPool(dataSource?: DataSource): Promise<Pool> {
+  // If we have a pool and the dataSource hasn't changed, return the existing pool
+  if (pool && (!dataSource || (currentDataSource && 
+      dataSource.jdbc_url === currentDataSource.jdbc_url && 
+      dataSource.username === currentDataSource.username && 
+      dataSource.password === currentDataSource.password))) {
+    return pool;
+  }
 
   let dbConfig: DbConfig;
   
-  // if (process.env.NODE_ENV === 'production') {
-  //   const client = new SecretsManagerClient({ region: 'us-east-1' });
-  //   const command = new GetSecretValueCommand({
-  //     SecretId: process.env.AWS_SECRET_ARN,
-  //   });
-  //   const response = await client.send(command);
-  //   dbConfig = JSON.parse(response.SecretString || '{}');
-  // } else {
-    // Development config
+  if (dataSource) {
+    // Parse JDBC URL
+    const urlString = dataSource.jdbc_url.replace('jdbc:postgresql://', 'http://');
+    const url = new URL(urlString);
+    const host = url.hostname;
+    const port = url.port || '5432';
+    const database = url.pathname.substring(1);
+
+    dbConfig = {
+      host,
+      port: parseInt(port),
+      database,
+      schema: 'public', // Default to public schema
+      user: dataSource.username,
+      password: dataSource.password,
+      ssl: {
+        rejectUnauthorized: false
+      }
+    };
+    currentDataSource = dataSource;
+  } else {
+    // Fallback to environment variables
     dbConfig = {
       host: process.env.DB_HOST || 'localhost',
       port: parseInt(process.env.DB_PORT || '5432'),
@@ -45,29 +71,8 @@ export async function getPool(): Promise<Pool> {
         key: process.env.DB_CLIENT_KEY,
         cert: process.env.DB_CLIENT_CERT,
       },
-    // };
+    };
   }
-
-  // Log connection details including password for debugging
-  console.log('Attempting to connect to database:', {
-    host: dbConfig.host,
-    port: dbConfig.port,
-    database: dbConfig.database,
-    schema: dbConfig.schema,
-    user: dbConfig.user,
-    password: dbConfig.password,
-    ssl: dbConfig.ssl ? 'enabled' : 'disabled',
-  });
-
-  // Verify environment variables are set
-  console.log('Environment variables check:', {
-    DB_HOST: process.env.DB_HOST ? 'set' : 'not set',
-    DB_PORT: process.env.DB_PORT ? 'set' : 'not set',
-    DB_USER: process.env.DB_USER ? 'set' : 'not set',
-    DB_PASSWORD: process.env.DB_PASSWORD ? 'set' : 'not set',
-    DB_DATABASE: process.env.DB_DATABASE ? 'set' : 'not set',
-    DB_SCHEMA: process.env.DB_SCHEMA ? 'set' : 'not set',
-  });
 
   // Create connection string with URL encoded password
   const encodedPassword = encodeURIComponent(dbConfig.password);
