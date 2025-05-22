@@ -94,69 +94,71 @@ function SortableColumn({
         <span className="text-xs text-gray-500">({column.dataType})</span>
       </div>
 
-      {column.active && (
-        <div className="flex items-center gap-2 ml-auto">
-          {onToggleFilterable && (
-            <div className="flex items-center gap-1">
-              <Checkbox
-                id={`filter-${column.name}`}
-                checked={column.filterable || false}
-                onCheckedChange={() => onToggleFilterable(index)}
-              />
-              <label
-                htmlFor={`filter-${column.name}`}
-                className="text-xs font-medium cursor-pointer select-none"
-              >
-                Filterable
-              </label>
-            </div>
-          )}
-          {onToggleSortable && (
-            <div className="flex items-center gap-1">
-              <Checkbox
-                id={`sort-${column.name}`}
-                checked={column.sortable || false}
-                onCheckedChange={() => onToggleSortable(index)}
-              />
-              <label
-                htmlFor={`sort-${column.name}`}
-                className="text-xs font-medium cursor-pointer select-none"
-              >
-                Sortable
-              </label>
-            </div>
-          )}
-          <div className="flex items-center">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => onMoveUp(index)}
-              disabled={index === 0}
-              className="h-5 w-5"
-            >
-              <ArrowUpIcon className="h-3 w-3" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => onMoveDown(index)}
-              disabled={isLast}
-              className="h-5 w-5"
-            >
-              <ArrowDownIcon className="h-3 w-3" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-5 w-5 cursor-grab active:cursor-grabbing"
-              {...attributes}
-              {...listeners}
-            >
-              <DragHandleDots2Icon className="h-3 w-3" />
-            </Button>
-          </div>
+      <div className="flex items-center gap-2 ml-auto">
+        {column.active && (
+          <>
+            {onToggleFilterable && (
+              <div className="flex items-center gap-1">
+                <Checkbox
+                  id={`filter-${column.name}`}
+                  checked={column.filterable || false}
+                  onCheckedChange={() => onToggleFilterable(index)}
+                />
+                <label
+                  htmlFor={`filter-${column.name}`}
+                  className="text-xs font-medium cursor-pointer select-none"
+                >
+                  Filterable
+                </label>
+              </div>
+            )}
+            {onToggleSortable && (
+              <div className="flex items-center gap-1">
+                <Checkbox
+                  id={`sort-${column.name}`}
+                  checked={column.sortable || false}
+                  onCheckedChange={() => onToggleSortable(index)}
+                />
+                <label
+                  htmlFor={`sort-${column.name}`}
+                  className="text-xs font-medium cursor-pointer select-none"
+                >
+                  Sortable
+                </label>
+              </div>
+            )}
+          </>
+        )}
+        <div className="flex items-center">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => onMoveUp(index)}
+            disabled={index === 0}
+            className="h-5 w-5"
+          >
+            <ArrowUpIcon className="h-3 w-3" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => onMoveDown(index)}
+            disabled={isLast}
+            className="h-5 w-5"
+          >
+            <ArrowDownIcon className="h-3 w-3" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-5 w-5 cursor-grab active:cursor-grabbing"
+            {...attributes}
+            {...listeners}
+          >
+            <DragHandleDots2Icon className="h-3 w-3" />
+          </Button>
         </div>
-      )}
+      </div>
     </div>
   )
 }
@@ -181,6 +183,7 @@ function SortableTable({
   sensors: any
 }) {
   const [isExpanded, setIsExpanded] = useState(false)
+  const [showInactiveColumns, setShowInactiveColumns] = useState(true)
   const {
     attributes,
     listeners,
@@ -221,16 +224,8 @@ function SortableTable({
     const column = newColumns[columnIndex]
     const newActiveState = !column.active
 
-    if (!newActiveState) {
-      newColumns.splice(columnIndex, 1)
-      newColumns.push({ ...column, active: newActiveState })
-    } else {
-      newColumns[columnIndex] = { ...column, active: newActiveState }
-    }
-
-    newColumns.forEach((col, idx) => {
-      col.ordinal = idx + 1
-    })
+    // Simply update the active state without reordering
+    newColumns[columnIndex] = { ...column, active: newActiveState }
     onColumnOrderChange(index, newColumns)
   }
 
@@ -321,8 +316,37 @@ function SortableTable({
 
       {isExpanded && (
         <div className="border border-t-0 rounded-b-lg">
-          <div className="bg-gray-100 px-3 py-1.5 border-b">
+          <div className="bg-gray-100 px-3 py-1.5 border-b flex justify-between items-center">
             <h3 className="text-sm font-medium">Columns</h3>
+            <div className="flex gap-2">
+              <Button 
+                variant="ghost" 
+                size="sm"
+                onClick={() => setShowInactiveColumns(!showInactiveColumns)}
+              >
+                {showInactiveColumns ? 'Hide Inactive' : 'Show Inactive'}
+              </Button>
+              <Button 
+                variant="ghost" 
+                size="sm"
+                onClick={() => {
+                  const newColumns = table.columns.map(col => ({ ...col, active: true }))
+                  onColumnOrderChange(index, newColumns)
+                }}
+              >
+                Activate All
+              </Button>
+              <Button 
+                variant="ghost" 
+                size="sm"
+                onClick={() => {
+                  const newColumns = table.columns.map(col => ({ ...col, active: false }))
+                  onColumnOrderChange(index, newColumns)
+                }}
+              >
+                Deactivate All
+              </Button>
+            </div>
           </div>
           <DndContext
             sensors={sensors}
@@ -357,6 +381,7 @@ function SortableTable({
               <div className="divide-y">
                 {table.columns
                   .sort((a, b) => a.ordinal - b.ordinal)
+                  .filter(column => showInactiveColumns || column.active)
                   .map((column, colIndex) => (
                     <SortableColumn
                       key={column.name}
@@ -381,6 +406,7 @@ function SortableTable({
 
 export default function DataLensOrganizer({ initialSchema, onSave, onCancel, title = 'Configure DataLens' }: DataLensOrganizerProps) {
   const [schema, setSchema] = useState<Table[]>(initialSchema)
+  const [showInactive, setShowInactive] = useState(true)
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -393,11 +419,7 @@ export default function DataLensOrganizer({ initialSchema, onSave, onCancel, tit
     setSchema(prevSchema => {
       const newSchema = prevSchema.map(table => ({
         ...table,
-        active: true,
-        columns: table.columns.map(column => ({
-          ...column,
-          active: true
-        }))
+        active: true
       }))
       return newSchema
     })
@@ -407,11 +429,7 @@ export default function DataLensOrganizer({ initialSchema, onSave, onCancel, tit
     setSchema(prevSchema => {
       const newSchema = prevSchema.map(table => ({
         ...table,
-        active: false,
-        columns: table.columns.map(column => ({
-          ...column,
-          active: false
-        }))
+        active: false
       }))
       return newSchema
     })
@@ -423,22 +441,8 @@ export default function DataLensOrganizer({ initialSchema, onSave, onCancel, tit
       const table = newSchema[index]
       const newActiveState = !table.active
 
-      if (!newActiveState) {
-        newSchema.splice(index, 1)
-        newSchema.push({ ...table, active: newActiveState })
-      } else {
-        const lastActiveIndex = newSchema.findIndex(t => !t.active)
-        if (lastActiveIndex === -1) {
-          newSchema[index] = { ...table, active: newActiveState }
-        } else {
-          newSchema.splice(index, 1)
-          newSchema.splice(lastActiveIndex, 0, { ...table, active: newActiveState })
-        }
-      }
-
-      newSchema.forEach((item, idx) => {
-        item.ordinal = idx + 1
-      })
+      // Simply update the active state without reordering
+      newSchema[index] = { ...table, active: newActiveState }
 
       return newSchema
     })
@@ -526,6 +530,12 @@ export default function DataLensOrganizer({ initialSchema, onSave, onCancel, tit
       </div>
 
       <div className="flex gap-2 mb-4">
+        <Button 
+          variant="outline" 
+          onClick={() => setShowInactive(!showInactive)}
+        >
+          {showInactive ? 'Hide Inactive' : 'Show Inactive'}
+        </Button>
         <Button variant="outline" onClick={handleActivateAll}>Activate All</Button>
         <Button variant="outline" onClick={handleDeactivateAll}>Deactivate All</Button>
       </div>
@@ -542,6 +552,7 @@ export default function DataLensOrganizer({ initialSchema, onSave, onCancel, tit
           <div className="space-y-4">
             {schema
               .sort((a, b) => a.ordinal - b.ordinal)
+              .filter(table => showInactive || table.active)
               .map((table, filteredIndex) => {
                 const originalIndex = schema.findIndex(t => t.name === table.name)
                 return (
