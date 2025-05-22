@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import Sidebar from './Sidebar';
+import TableList from './TableList';
 import DataTable from './DataTable';
 import { DataNavigatorConfig } from '@/types/datalens';
 import { useParams } from 'next/navigation';
@@ -31,7 +31,7 @@ export default function DataNavigator({ config, title, dataSource }: DataNavigat
   return (
     <div className="flex flex-col h-full bg-gray-100">
       <div className="flex flex-1 min-h-0">
-        <Sidebar 
+        <TableList 
           selectedTable={selectedTable} 
           onTableSelect={setSelectedTable}
           tables={tables}

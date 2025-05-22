@@ -1,3 +1,9 @@
+'use client';
+
+import { useState } from 'react';
+import { ChevronLeft, ChevronRight, Home } from 'lucide-react';
+import Link from 'next/link';
+
 interface Table {
   name: string;
   ordinal: number;
@@ -12,10 +18,22 @@ interface TableListProps {
 }
 
 export default function TableList({ selectedTable, onTableSelect, tables, title = 'Tables/Views' }: TableListProps) {
+  const [isCollapsed, setIsCollapsed] = useState(false);
+
   return (
-    <div className="bg-white shadow-lg w-64">
-      <div className="p-4 border-b">
-        <h2 className="text-lg font-semibold">{title}</h2>
+    <div
+      className={`bg-white shadow-lg transition-all duration-300 ${
+        isCollapsed ? 'w-16' : 'w-64'
+      }`}
+    >
+      <div className="p-4 flex items-center justify-between border-b">
+        {!isCollapsed && <h2 className="text-lg font-semibold">{title}</h2>}
+        <button
+          onClick={() => setIsCollapsed(!isCollapsed)}
+          className="p-2 hover:bg-gray-100 rounded-full"
+        >
+          {isCollapsed ? <ChevronRight size={20} /> : <ChevronLeft size={20} />}
+        </button>
       </div>
       <nav className="p-2">
         {tables.map((table) => (
@@ -26,7 +44,7 @@ export default function TableList({ selectedTable, onTableSelect, tables, title 
               selectedTable === table.name ? 'bg-gray-100' : ''
             }`}
           >
-            {table.name}
+            {!isCollapsed && table.name}
           </button>
         ))}
       </nav>
