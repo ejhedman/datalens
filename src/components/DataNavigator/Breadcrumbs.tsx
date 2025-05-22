@@ -25,25 +25,6 @@ export default function Breadcrumbs({
 }: BreadcrumbsProps) {
   return (
     <div className="flex-none">
-      <div className="p-2 border-b bg-gray-50 flex justify-between items-center">
-        <div className="flex items-center gap-2">
-          {hasQuery && (
-            <button
-              onClick={onShowSql}
-              className="p-1 hover:bg-gray-200 rounded"
-              title="Show SQL"
-            >
-              <Code size={16} />
-            </button>
-          )}
-          <div className="text-sm font-medium text-gray-700">
-            {table}
-          </div>
-        </div>
-        <div className="text-sm text-gray-600">
-          {dataLength} of {totalCount} rows
-        </div>
-      </div>
       {Object.entries(filters).some(([_, values]) => values.length > 0) && (
         <div className="p-2 border-b bg-gray-50">
           <div className="flex items-center gap-2">
