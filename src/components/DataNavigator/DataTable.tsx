@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { ChevronUp, ChevronDown, Filter, Loader2, X, Code, Download } from 'lucide-react';
-import { TableContainer, Table, Paper } from '@mui/material';
 import SqlDialog from './SqlDialog';
 
 interface Column {
