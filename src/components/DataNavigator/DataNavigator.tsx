@@ -3,36 +3,23 @@
 import { useState } from 'react';
 import Sidebar from './Sidebar';
 import DataTable from './DataTable';
-
-interface Table {
-  name: string;
-  ordinal: number;
-  active: boolean;
-  columns: Array<{
-    name: string;
-    dataType: string;
-    ordinal: number;
-    active: boolean;
-    filterable: boolean;
-    sortable: boolean;
-  }>;
-}
-
-interface DataNavigatorConfig {
-  tables: Table[];
-}
+import { DataNavigatorConfig } from '@/types/datalens';
 
 interface DataNavigatorProps {
   config: DataNavigatorConfig;
   title?: string;
+  dataSource?: any;
 }
 
-export default function DataNavigator({ config, title }: DataNavigatorProps) {
+export default function DataNavigator({ config, title, dataSource }: DataNavigatorProps) {
   const [selectedTable, setSelectedTable] = useState<string | null>(null);
-  const selectedTableConfig = config.tables.find(t => t.name === selectedTable);
+  
+  // Ensure config.tables exists and is an array
+  const tables = config?.tables || [];
+  const selectedTableConfig = tables.find(t => t.name === selectedTable);
 
   // Convert table columns to DataTable column format
-  const columns = selectedTableConfig?.columns.map(col => ({
+  const columns = selectedTableConfig?.columns?.map(col => ({
     name: col.name,
     type: col.dataType,
     ordinal: col.ordinal
@@ -44,13 +31,14 @@ export default function DataNavigator({ config, title }: DataNavigatorProps) {
         <Sidebar 
           selectedTable={selectedTable} 
           onTableSelect={setSelectedTable}
-          tables={config.tables}
+          tables={tables}
           title={title}
         />
         <main className="flex-1 p-4">
           <DataTable 
             table={selectedTable || undefined}
             columns={columns}
+            dataSource={dataSource}
           />
         </main>
       </div>
