@@ -23,6 +23,16 @@ import {
 import { restrictToVerticalAxis, restrictToParentElement } from '@dnd-kit/modifiers'
 import { CSS } from '@dnd-kit/utilities'
 import React from 'react'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 
 interface Column {
   name: string
@@ -31,6 +41,8 @@ interface Column {
   active: boolean
   filterable?: boolean
   sortable?: boolean
+  key_column?: boolean
+  sort_column?: boolean
 }
 
 interface Table {
@@ -56,7 +68,9 @@ function SortableColumn({
   onMoveDown,
   isLast,
   onToggleFilterable,
-  onToggleSortable
+  onToggleSortable,
+  onToggleKeyColumn,
+  onToggleSortColumn
 }: {
   column: Column
   index: number
@@ -66,6 +80,8 @@ function SortableColumn({
   isLast: boolean
   onToggleFilterable?: (index: number) => void
   onToggleSortable?: (index: number) => void
+  onToggleKeyColumn?: (index: number) => void
+  onToggleSortColumn?: (index: number) => void
 }) {
   const {
     attributes,
@@ -128,6 +144,42 @@ function SortableColumn({
                 </label>
               </div>
             )}
+            {onToggleKeyColumn && (
+              <div className="flex items-center gap-1">
+                <input
+                  type="radio"
+                  id={`key-${column.name}`}
+                  name="key_column"
+                  checked={column.key_column || false}
+                  onChange={() => onToggleKeyColumn(index)}
+                  className="h-3 w-3"
+                />
+                <label
+                  htmlFor={`key-${column.name}`}
+                  className="text-xs font-medium cursor-pointer select-none"
+                >
+                  Key Column
+                </label>
+              </div>
+            )}
+            {onToggleSortColumn && (
+              <div className="flex items-center gap-1">
+                <input
+                  type="radio"
+                  id={`sortcol-${column.name}`}
+                  name="sort_column"
+                  checked={column.sort_column || false}
+                  onChange={() => onToggleSortColumn(index)}
+                  className="h-3 w-3"
+                />
+                <label
+                  htmlFor={`sortcol-${column.name}`}
+                  className="text-xs font-medium cursor-pointer select-none"
+                >
+                  Sort Column
+                </label>
+              </div>
+            )}
           </>
         )}
         <div className="flex items-center">
@@ -185,6 +237,11 @@ function SortableTable({
 }) {
   const [isExpanded, setIsExpanded] = useState(false)
   const [showInactiveColumns, setShowInactiveColumns] = useState(true)
+  const [warningDialog, setWarningDialog] = useState<{
+    show: boolean
+    message: string
+    columnIndex: number
+  }>({ show: false, message: '', columnIndex: -1 })
   const {
     attributes,
     listeners,
@@ -220,13 +277,53 @@ function SortableTable({
     onColumnOrderChange(index, newColumns)
   }
 
+  const handleColumnToggleKeyColumn = (columnIndex: number) => {
+    const newColumns = table.columns.map((col, idx) => ({
+      ...col,
+      key_column: idx === columnIndex ? !col.key_column : false
+    }))
+    onColumnOrderChange(index, newColumns)
+  }
+
+  const handleColumnToggleSortColumn = (columnIndex: number) => {
+    const newColumns = table.columns.map((col, idx) => ({
+      ...col,
+      sort_column: idx === columnIndex ? !col.sort_column : false
+    }))
+    onColumnOrderChange(index, newColumns)
+  }
+
   const handleColumnToggleActive = (columnIndex: number) => {
-    const newColumns = [...table.columns]
-    const column = newColumns[columnIndex]
+    const column = table.columns[columnIndex]
     const newActiveState = !column.active
 
-    // Simply update the active state without reordering
-    newColumns[columnIndex] = { ...column, active: newActiveState }
+    // If trying to deactivate, check if it's a key or sort column
+    if (!newActiveState) {
+      if (column.key_column) {
+        setWarningDialog({
+          show: true,
+          message: 'This column is set as the key column. Please select another column as the key column before deactivating this one.',
+          columnIndex
+        })
+        return
+      }
+      if (column.sort_column) {
+        setWarningDialog({
+          show: true,
+          message: 'This column is set as the sort column. Please select another column as the sort column before deactivating this one.',
+          columnIndex
+        })
+        return
+      }
+    }
+
+    const newColumns = [...table.columns]
+    newColumns[columnIndex] = { 
+      ...column, 
+      active: newActiveState,
+      key_column: newActiveState ? column.key_column : false,
+      sort_column: newActiveState ? column.sort_column : false
+    }
     onColumnOrderChange(index, newColumns)
   }
 
@@ -341,7 +438,10 @@ function SortableTable({
                 variant="ghost" 
                 size="sm"
                 onClick={() => {
-                  const newColumns = table.columns.map(col => ({ ...col, active: false }))
+                  const newColumns = table.columns.map(col => ({
+                    ...col,
+                    active: col.key_column || col.sort_column ? true : false
+                  }))
                   onColumnOrderChange(index, newColumns)
                 }}
               >
@@ -395,6 +495,8 @@ function SortableTable({
                       isLast={colIndex === table.columns.length - 1}
                       onToggleFilterable={handleColumnToggleFilterable}
                       onToggleSortable={handleColumnToggleSortable}
+                      onToggleKeyColumn={handleColumnToggleKeyColumn}
+                      onToggleSortColumn={handleColumnToggleSortColumn}
                     />
                   ))}
               </div>
@@ -402,12 +504,42 @@ function SortableTable({
           </DndContext>
         </div>
       )}
+
+      <AlertDialog open={warningDialog.show} onOpenChange={(open) => setWarningDialog(prev => ({ ...prev, show: open }))}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Cannot Deactivate Column</AlertDialogTitle>
+            <AlertDialogDescription>
+              {warningDialog.message}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogAction>OK</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }
 
 export default function DataLensOrganizer({ initialSchema, onSave, onCancel, title = 'Configure DataLens' }: DataLensOrganizerProps) {
-  const [schema, setSchema] = useState<Table[]>(initialSchema)
+  const [schema, setSchema] = useState<Table[]>(() => {
+    // Initialize schema with defaults only when properties don't exist
+    return initialSchema.map(table => ({
+      ...table,
+      columns: table.columns.map((col, idx) => {
+        // Check if either property is undefined
+        const needsDefaults = col.key_column === undefined || col.sort_column === undefined
+        
+        return {
+          ...col,
+          // Only set defaults if properties don't exist
+          key_column: needsDefaults ? (idx === 0) : col.key_column,
+          sort_column: needsDefaults ? (idx === 0) : col.sort_column
+        }
+      })
+    }))
+  })
   const [showInactive, setShowInactive] = useState(true)
 
   const sensors = useSensors(
