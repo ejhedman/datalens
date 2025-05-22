@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { ChevronUp, ChevronDown, Filter, Loader2, X, Code } from 'lucide-react';
+import { ChevronUp, ChevronDown, Filter, Loader2, X, Code, Download } from 'lucide-react';
 import { TableContainer, Table, Paper } from '@mui/material';
 import SqlDialog from './SqlDialog';
 
@@ -321,6 +321,38 @@ export default function DataTable({ table, columns: configuredColumns }: DataTab
     return result;
   };
 
+  const handleExportCsv = () => {
+    if (!data?.data || !sortedColumns) return;
+
+    // Create CSV header
+    const headers = sortedColumns.map(col => col.name);
+    const csvContent = [
+      headers.join(','),
+      ...data.data.map(row => 
+        sortedColumns.map(col => {
+          const value = row[col.name];
+          // Handle values that might contain commas or quotes
+          if (value === null || value === undefined) return '';
+          const stringValue = String(value);
+          return stringValue.includes(',') || stringValue.includes('"') 
+            ? `"${stringValue.replace(/"/g, '""')}"`
+            : stringValue;
+        }).join(',')
+      )
+    ].join('\n');
+
+    // Create and trigger download
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `${table}_export.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   const tableStyles = {
     table: {
       width: 'fit-content',
@@ -446,8 +478,19 @@ export default function DataTable({ table, columns: configuredColumns }: DataTab
               {table}
             </div>
           </div>
-          <div className="text-sm text-gray-600">
-            {data?.data.length} of {totalCount} rows
+          <div className="flex items-center gap-4">
+            <div className="text-sm text-gray-600">
+              {data?.data.length} of {totalCount} rows
+            </div>
+            {data?.data && data.data.length > 0 && (
+              <button
+                onClick={handleExportCsv}
+                className="p-1 hover:bg-gray-200 rounded"
+                title="Export to CSV"
+              >
+                <Download size={16} />
+              </button>
+            )}
           </div>
         </div>
         {Object.entries(filters).some(([_, values]) => values.length > 0) && (
