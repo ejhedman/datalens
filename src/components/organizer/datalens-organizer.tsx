@@ -650,7 +650,17 @@ export default function DataLensOrganizer({ initialSchema, onSave, onCancel, tit
   }
 
   const handleSave = async () => {
-    await onSave(schema)
+    // For each table, set top-level key_column and sort_column based on columns
+    const schemaWithKeys = schema.map(table => {
+      const keyCol = table.columns.find(col => col.key_column)?.name || null;
+      const sortCol = table.columns.find(col => col.sort_column)?.name || null;
+      return {
+        ...table,
+        key_column: keyCol,
+        sort_column: sortCol,
+      };
+    });
+    await onSave(schemaWithKeys);
   }
 
   return (
