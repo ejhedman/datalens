@@ -1,8 +1,16 @@
 'use client';
 
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { ChevronUp, ChevronDown, Filter, Loader2, X, Code, Download } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 import SqlDialog from './SqlDialog';
+import TableHeader from './TableHeader';
+import FilterDisplay from './FilterDisplay';
+import SortDisplay from './SortDisplay';
+import TableControls from './TableControls';
+import TableRow from './TableRow';
+import LoadingState from './LoadingState';
+import ErrorState from './ErrorState';
+import EmptyState from './EmptyState';
 
 interface Column {
   name: string;
@@ -226,12 +234,10 @@ export default function DataTable({ table, columns: configuredColumns, dataSourc
         datalensId,
       });
 
-      // Only add lastKey if we're not resetting and we have a lastKey
       if (!reset && lastKey) {
         params.append('lastKey', lastKey);
       }
 
-      // Add dataSource configuration if available
       if (dataSource) {
         params.append('dataSource', JSON.stringify(dataSource));
       }
@@ -320,10 +326,6 @@ export default function DataTable({ table, columns: configuredColumns, dataSourc
     setActiveFilter(null);
   };
 
-  const getDistinctValues = (field: string) => {
-    return Array.from(new Set(data?.data.map(row => row[field]) || []));
-  };
-
   const handleCopySql = () => {
     if (!data?.query) return;
     const textToCopy = showSubstituted ? substituteParams(data.query.sql, data.query.params) : data.query.sql;
@@ -343,14 +345,12 @@ export default function DataTable({ table, columns: configuredColumns, dataSourc
   const handleExportCsv = () => {
     if (!data?.data || !sortedColumns) return;
 
-    // Create CSV header
     const headers = sortedColumns.map(col => col.name);
     const csvContent = [
       headers.join(','),
       ...data.data.map(row => 
         sortedColumns.map(col => {
           const value = row[col.name];
-          // Handle values that might contain commas or quotes
           if (value === null || value === undefined) return '';
           const stringValue = String(value);
           return stringValue.includes(',') || stringValue.includes('"') 
@@ -360,7 +360,6 @@ export default function DataTable({ table, columns: configuredColumns, dataSourc
       )
     ].join('\n');
 
-    // Create and trigger download
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');
     const url = URL.createObjectURL(blob);
@@ -372,188 +371,34 @@ export default function DataTable({ table, columns: configuredColumns, dataSourc
     document.body.removeChild(link);
   };
 
-  const tableStyles = {
-    table: {
-      width: 'fit-content',
-      minWidth: '100%',
-      borderCollapse: 'collapse' as const,
-      backgroundColor: 'white',
-    },
-    th: {
-      padding: '8px',
-      textAlign: 'left' as const,
-      borderBottom: '1px solid #ddd',
-      backgroundColor: '#f8f9fa',
-      position: 'sticky' as const,
-      top: 0,
-      zIndex: 1,
-      whiteSpace: 'nowrap' as const,
-    },
-    td: {
-      padding: '8px',
-      borderBottom: '1px solid #ddd',
-      whiteSpace: 'nowrap' as const,
-    },
-    container: {
-      position: 'relative' as const,
-    },
-    headerCell: {
-      display: 'flex',
-      alignItems: 'center',
-      gap: '8px',
-    },
-    sortIcon: {
-      cursor: 'pointer',
-    },
-    filterIcon: {
-      cursor: 'pointer',
-      color: '#6c757d',
-    },
-    activeFilter: {
-      color: '#007bff',
-    },
-    loading: {
-      position: 'absolute' as const,
-      top: '50%',
-      left: '50%',
-      transform: 'translate(-50%, -50%)',
-    },
-    error: {
-      color: 'red',
-      padding: '20px',
-      textAlign: 'center' as const,
-    },
-    breadcrumbs: {
-      display: 'flex',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      padding: '8px',
-      backgroundColor: '#f8f9fa',
-      borderBottom: '1px solid #ddd',
-    },
-    filterChip: {
-      display: 'inline-flex',
-      alignItems: 'center',
-      padding: '4px 8px',
-      margin: '4px',
-      backgroundColor: '#e9ecef',
-      borderRadius: '16px',
-      fontSize: '14px',
-    },
-    removeFilter: {
-      marginLeft: '4px',
-      cursor: 'pointer',
-      color: '#6c757d',
-    },
-    rowCount: {
-      color: '#6c757d',
-      fontSize: '14px',
-    },
-  };
-
   if (!table) {
-    return (
-      <div className="flex items-center justify-center h-full">
-        <p className="text-gray-500">Select a table to view data</p>
-      </div>
-    );
+    return <EmptyState />;
   }
 
   if (error) {
-    return (
-      <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-        <div className="flex">
-          <div className="flex-shrink-0">
-            <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
-              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-            </svg>
-          </div>
-          <div className="ml-3">
-            <h3 className="text-sm font-medium text-red-800">Error loading data</h3>
-            <div className="mt-2 text-sm text-red-700">
-              <p>{error}</p>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
+    return <ErrorState message={error} />;
   }
 
   return (
     <div className="flex flex-col h-full">
       <div className="flex-none">
-        <div className="p-2 border-b bg-gray-50 flex justify-between items-center">
-          <div className="flex items-center gap-2">
-            {data?.query && (
-              <button
-                onClick={() => setShowSqlDialog(true)}
-                className="p-1 hover:bg-gray-200 rounded"
-                title="Show SQL"
-              >
-                <Code size={16} />
-              </button>
-            )}
-            <div className="text-sm font-medium text-gray-700">
-              {table}
-            </div>
-          </div>
-          <div className="flex items-center gap-4">
-            <div className="text-sm text-gray-600">
-              {data?.data.length} of {totalCount} rows
-            </div>
-            {data?.data && data.data.length > 0 && (
-              <button
-                onClick={handleExportCsv}
-                className="p-1 hover:bg-gray-200 rounded"
-                title="Export to CSV"
-              >
-                <Download size={16} />
-              </button>
-            )}
-          </div>
-        </div>
-        {Object.entries(filters).some(([_, values]) => values.length > 0) && (
-          <div className="p-2 border-b bg-gray-50">
-            <div className="flex items-center gap-2">
-              <span className="text-sm font-medium text-gray-700">Filter:</span>
-              <div className="flex flex-wrap gap-2">
-                {Object.entries(filters).map(([field, values]) => 
-                  values.length > 0 && (
-                    <div key={field} className="flex items-center gap-1 bg-blue-50 rounded px-2 py-1">
-                      <span className="text-sm font-medium text-blue-700">{field}:</span>
-                      <div className="flex flex-wrap gap-1">
-                        {values.map((value, index) => (
-                          <span key={index} className="text-sm text-blue-600">
-                            {value}{index < values.length - 1 ? ',' : ''}
-                          </span>
-                        ))}
-                      </div>
-                      <button
-                        onClick={() => handleFilter(field, [])}
-                        className="ml-1 text-blue-500 hover:text-blue-700"
-                      >
-                        <X size={12} />
-                      </button>
-                    </div>
-                  )
-                )}
-              </div>
-            </div>
-          </div>
-        )}
-        {sortField && (
-          <div className="p-2 border-b bg-gray-50 flex justify-between items-center">
-            <div className="flex items-center gap-2">
-              <span className="text-sm font-medium text-gray-700">Sort:</span>
-              <div className="flex items-center gap-1 bg-gray-100 rounded px-2 py-1">
-                <span className="text-sm text-gray-600">{sortField}</span>
-                <span className="text-sm text-gray-500">
-                  ({sortDirection === 'asc' ? 'ascending' : 'descending'})
-                </span>
-              </div>
-            </div>
-          </div>
-        )}
+        <TableHeader
+          table={table}
+          rowCount={data?.data.length || 0}
+          totalCount={totalCount}
+          hasData={!!data?.data.length}
+          onShowSql={() => setShowSqlDialog(true)}
+          onExportCsv={handleExportCsv}
+          hasQuery={!!data?.query}
+        />
+        <FilterDisplay
+          filters={filters}
+          onRemoveFilter={(field) => handleFilter(field, [])}
+        />
+        <SortDisplay
+          sortField={sortField}
+          sortDirection={sortDirection}
+        />
       </div>
       <div className="flex-1 min-h-0 relative">
         <div className="absolute inset-0 overflow-auto">
@@ -566,41 +411,16 @@ export default function DataTable({ table, columns: configuredColumns, dataSourc
                       key={column.name}
                       className="px-2 py-1 text-left font-medium text-gray-500 uppercase tracking-wider bg-gray-50 sticky top-0"
                     >
-                      <div className="flex items-center space-x-1">
-                        <span className="text-xs">{column.name}</span>
-                        <div className="flex items-center space-x-0.5">
-                          <button
-                            onClick={() => handleSort(column.name)}
-                            className="hover:text-gray-700"
-                          >
-                            {sortField === column.name ? (
-                              sortDirection === 'asc' ? (
-                                <ChevronUp size={12} />
-                              ) : (
-                                <ChevronDown size={12} />
-                              )
-                            ) : (
-                              <ChevronUp size={12} className="text-gray-400" />
-                            )}
-                          </button>
-                          <button
-                            onClick={() => setActiveFilter(activeFilter === column.name ? null : column.name)}
-                            className={`hover:text-gray-700 ${
-                              filters[column.name]?.length ? 'text-blue-500' : ''
-                            }`}
-                          >
-                            <Filter size={12} />
-                          </button>
-                          {filters[column.name]?.length > 0 && (
-                            <button
-                              onClick={() => handleFilter(column.name, [])}
-                              className="text-red-500 hover:text-red-700"
-                            >
-                              <X size={12} />
-                            </button>
-                          )}
-                        </div>
-                      </div>
+                      <TableControls
+                        columnName={column.name}
+                        sortField={sortField}
+                        sortDirection={sortDirection}
+                        hasFilter={!!filters[column.name]?.length}
+                        isActiveFilter={activeFilter === column.name}
+                        onSort={() => handleSort(column.name)}
+                        onFilter={() => setActiveFilter(activeFilter === column.name ? null : column.name)}
+                        onClearFilter={() => handleFilter(column.name, [])}
+                      />
                       {activeFilter === column.name && (
                         <FilterDropdown
                           table={table}
@@ -618,34 +438,17 @@ export default function DataTable({ table, columns: configuredColumns, dataSourc
               </thead>
               <tbody className="divide-y divide-gray-200">
                 {data?.data.map((row, index) => (
-                  <tr
+                  <TableRow
                     key={index}
-                    ref={index === data.data.length - 1 ? lastRowRef : undefined}
-                    className={`hover:bg-gray-50 ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}`}
-                  >
-                    {sortedColumns.map(column => (
-                      <td 
-                        key={column.name} 
-                        className="px-2 py-1 whitespace-nowrap hover:bg-gray-100 cursor-pointer"
-                        onDoubleClick={() => {
-                          const value = row[column.name];
-                          if (value !== null && value !== undefined) {
-                            handleFilter(column.name, [value]);
-                          }
-                        }}
-                      >
-                        {row[column.name]}
-                      </td>
-                    ))}
-                  </tr>
+                    row={row}
+                    columns={sortedColumns}
+                    index={index}
+                    isLastRow={index === data.data.length - 1}
+                    onRowRef={lastRowRef}
+                    onCellDoubleClick={(columnName, value) => handleFilter(columnName, [value])}
+                  />
                 ))}
-                {loading && (
-                  <tr>
-                    <td colSpan={sortedColumns.length} className="px-2 py-1 text-center">
-                      <Loader2 className="animate-spin mx-auto h-4 w-4" />
-                    </td>
-                  </tr>
-                )}
+                {loading && <LoadingState columnCount={sortedColumns.length} />}
               </tbody>
             </table>
           </div>
