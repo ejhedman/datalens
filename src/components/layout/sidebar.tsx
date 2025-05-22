@@ -49,7 +49,7 @@ export function Sidebar({ onSectionSelect, selectedSection }: SidebarProps) {
   const handleMouseEnter = () => {
     const timeout = setTimeout(() => {
       setIsExpanded(true)
-    }, 1000) // 1 second delay
+    }, 20000) // 20 second delay
     setExpandTimeout(timeout)
   }
 

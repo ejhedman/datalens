@@ -41,23 +41,25 @@ export function DataLensList({
       <div className="p-4">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-lg font-semibold">DataLenses</h2>
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  onClick={onNewDataLens}
-                  variant="ghost"
-                  size="icon"
-                  className="h-8 w-8 rounded-md border border-gray-300 hover:border-gray-400"
-                >
-                  <Plus className="h-4 w-4" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>Create New DataLens</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
+          {isDataSourceSelected && (
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    onClick={onNewDataLens}
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 rounded-md border border-gray-300 hover:border-gray-400"
+                  >
+                    <Plus className="h-4 w-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Create New DataLens</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          )}
         </div>
 
         {isLoading ? (
