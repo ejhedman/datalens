@@ -2,28 +2,8 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { ChevronUp, ChevronDown, Filter, Loader2, X, Code } from 'lucide-react';
-import { TableContainer, Table, Paper, Dialog, DialogTitle, DialogContent, IconButton, Tooltip, Box, Typography } from '@mui/material';
-import { styled } from '@mui/material/styles';
-import ContentCopyIcon from '@mui/icons-material/ContentCopy';
-import DataObjectIcon from '@mui/icons-material/DataObject';
-import { SqlDisplay } from './SqlDisplay';
-
-const SqlDialog = styled(Dialog)(({ theme }) => ({
-  '& .MuiDialog-paper': {
-    minWidth: '600px',
-    maxWidth: '80vw',
-  },
-}));
-
-const SqlContent = styled('pre')(({ theme }) => ({
-  margin: 0,
-  fontFamily: 'monospace',
-  whiteSpace: 'pre-wrap',
-  wordBreak: 'break-word',
-  padding: theme.spacing(2),
-  backgroundColor: theme.palette.grey[100],
-  borderRadius: theme.shape.borderRadius,
-}));
+import { TableContainer, Table, Paper } from '@mui/material';
+import SqlDialog from './SqlDialog';
 
 interface Column {
   name: string;
@@ -611,44 +591,11 @@ export default function DataTable({ table, columns: configuredColumns }: DataTab
       <SqlDialog
         open={showSqlDialog}
         onClose={() => setShowSqlDialog(false)}
-        maxWidth="md"
-        fullWidth
-      >
-        <DialogTitle className="flex items-center justify-between">
-          <span>SQL Query</span>
-          <div className="flex items-center gap-2">
-            <Tooltip title="Toggle between raw SQL and substituted values">
-              <IconButton
-                size="small"
-                onClick={() => setShowSubstituted(!showSubstituted)}
-                color={showSubstituted ? "primary" : "default"}
-              >
-                {showSubstituted ? <DataObjectIcon /> : <Code />}
-              </IconButton>
-            </Tooltip>
-            <Tooltip title="Copy to clipboard">
-              <IconButton size="small" onClick={handleCopySql}>
-                <ContentCopyIcon />
-              </IconButton>
-            </Tooltip>
-          </div>
-        </DialogTitle>
-        <DialogContent>
-          <SqlContent>
-            {data?.query && (showSubstituted ? substituteParams(data.query.sql, data.query.params) : data.query.sql)}
-          </SqlContent>
-          {data?.query?.params && data.query.params.length > 0 && !showSubstituted && (
-            <Box sx={{ mt: 2 }}>
-              <Typography variant="caption" color="text.secondary">
-                Parameters:
-              </Typography>
-              <SqlContent>
-                {JSON.stringify(data.query.params, null, 2)}
-              </SqlContent>
-            </Box>
-          )}
-        </DialogContent>
-      </SqlDialog>
+        sql={data?.query?.sql}
+        params={data?.query?.params}
+        showSubstituted={showSubstituted}
+        onToggleSubstituted={() => setShowSubstituted(!showSubstituted)}
+      />
     </div>
   );
 } 
