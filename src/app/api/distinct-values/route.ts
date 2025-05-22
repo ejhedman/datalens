@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { loadTables } from '@/lib/config';
 import { query, getPool } from '@/lib/db';
+import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
+import { cookies } from 'next/headers';
 
 interface Column {
   name: string;
@@ -27,6 +28,7 @@ export async function GET(request: NextRequest) {
     const filters = JSON.parse(searchParams.get('filters') || '{}') as Record<string, string[]>;
     const dataSourceStr = searchParams.get('dataSource');
     const dataSource = dataSourceStr ? JSON.parse(dataSourceStr) as DataSource : undefined;
+    const datalensId = searchParams.get('datalensId');
 
     if (!table || !column) {
       return NextResponse.json(
@@ -35,12 +37,46 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const tables = await loadTables();
+    if (!datalensId) {
+      return NextResponse.json(
+        { error: 'DataLens ID is required' },
+        { status: 400 }
+      );
+    }
+
+    // Get the DataLens configuration from Supabase
+    const supabase = createRouteHandlerClient({ cookies });
+    const { data: dataLens, error: lensError } = await supabase
+      .from('datalenses')
+      .select('datalens_config')
+      .eq('id', datalensId)
+      .single();
+
+    if (lensError) {
+      console.error('Supabase error:', lensError);
+      return NextResponse.json(
+        { error: 'Failed to fetch DataLens configuration' },
+        { status: 500 }
+      );
+    }
+
+    if (!dataLens?.datalens_config) {
+      return NextResponse.json(
+        { error: 'DataLens configuration not found' },
+        { status: 404 }
+      );
+    }
+
+    // Get the tables array from the configuration
+    const tables = Array.isArray(dataLens.datalens_config) 
+      ? dataLens.datalens_config 
+      : dataLens.datalens_config.tables || [];
+
     const tableConfig = tables.find((t: Table) => t.name === table);
 
     if (!tableConfig) {
       return NextResponse.json(
-        { error: 'Table not found' },
+        { error: 'Table not found in DataLens configuration' },
         { status: 404 }
       );
     }

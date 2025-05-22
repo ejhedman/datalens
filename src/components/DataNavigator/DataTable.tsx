@@ -23,6 +23,7 @@ interface DataTableProps {
     username: string;
     password: string;
   } | null;
+  datalensId: string;
 }
 
 interface FilterDropdownProps {
@@ -32,9 +33,10 @@ interface FilterDropdownProps {
   onSelect: (values: any[]) => void;
   onClose: () => void;
   filters: Record<string, any[]>;
+  datalensId: string;
 }
 
-function FilterDropdown({ table, column, selectedValues, onSelect, onClose, filters }: FilterDropdownProps) {
+function FilterDropdown({ table, column, selectedValues, onSelect, onClose, filters, datalensId }: FilterDropdownProps) {
   const [search, setSearch] = useState('');
   const [values, setValues] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
@@ -69,7 +71,8 @@ function FilterDropdown({ table, column, selectedValues, onSelect, onClose, filt
           table,
           column,
           searchTerm: search,
-          filters: JSON.stringify(filters)
+          filters: JSON.stringify(filters),
+          datalensId,
         });
 
         const response = await fetch(`${baseUrl}/api/distinct-values?${params}`);
@@ -92,7 +95,7 @@ function FilterDropdown({ table, column, selectedValues, onSelect, onClose, filt
         clearTimeout(searchTimeout.current);
       }
     };
-  }, [table, column, search, filters]);
+  }, [table, column, search, filters, datalensId]);
 
   const toggleValue = (value: any) => {
     if (selectedValues.includes(value)) {
@@ -150,7 +153,7 @@ interface DataResponse {
   };
 }
 
-export default function DataTable({ table, columns: configuredColumns, dataSource }: DataTableProps) {
+export default function DataTable({ table, columns: configuredColumns, dataSource, datalensId }: DataTableProps) {
   const [data, setData] = useState<DataResponse | null>(null);
   const [loading, setLoading] = useState(false);
   const [hasMore, setHasMore] = useState(true);
@@ -221,6 +224,7 @@ export default function DataTable({ table, columns: configuredColumns, dataSourc
         sortField: sortField || '',
         sortDirection: sortDirection || 'asc',
         filters: JSON.stringify(filters),
+        datalensId,
       });
 
       // Only add lastKey if we're not resetting and we have a lastKey
@@ -241,7 +245,8 @@ export default function DataTable({ table, columns: configuredColumns, dataSourc
         filters: JSON.stringify(filters),
         lastKey: !reset ? lastKey : 'none',
         reset,
-        hasDataSource: !!dataSource
+        hasDataSource: !!dataSource,
+        datalensId,
       });
 
       const response = await fetch(`${baseUrl}/api/data?${params}`);
@@ -605,6 +610,7 @@ export default function DataTable({ table, columns: configuredColumns, dataSourc
                           onSelect={(values) => handleFilter(column.name, values)}
                           onClose={() => setActiveFilter(null)}
                           filters={filters}
+                          datalensId={datalensId}
                         />
                       )}
                     </th>

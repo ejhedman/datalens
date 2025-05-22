@@ -4,6 +4,7 @@ import { useState } from 'react';
 import Sidebar from './Sidebar';
 import DataTable from './DataTable';
 import { DataNavigatorConfig } from '@/types/datalens';
+import { useParams } from 'next/navigation';
 
 interface DataNavigatorProps {
   config: DataNavigatorConfig;
@@ -13,6 +14,8 @@ interface DataNavigatorProps {
 
 export default function DataNavigator({ config, title, dataSource }: DataNavigatorProps) {
   const [selectedTable, setSelectedTable] = useState<string | null>(null);
+  const params = useParams();
+  const datalensId = params.id as string;
   
   // Ensure config.tables exists and is an array
   const tables = config?.tables || [];
@@ -39,6 +42,7 @@ export default function DataNavigator({ config, title, dataSource }: DataNavigat
             table={selectedTable || undefined}
             columns={columns}
             dataSource={dataSource}
+            datalensId={datalensId}
           />
         </main>
       </div>

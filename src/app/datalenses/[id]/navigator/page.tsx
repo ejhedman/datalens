@@ -35,6 +35,8 @@ interface Column {
 }
 
 function validateConfig(config: any): { isValid: boolean; error?: string } {
+  console.log('Validating config:', config);
+  
   if (!config) {
     return { isValid: false, error: 'Configuration is undefined or null' };
   }
@@ -81,6 +83,8 @@ function validateConfig(config: any): { isValid: boolean; error?: string } {
 }
 
 function processConfig(rawConfig: any): DataNavigatorConfig {
+  console.log('Processing raw config:', rawConfig);
+  
   // Get the tables array, whether it's directly the config or in config.tables
   const tables = Array.isArray(rawConfig) ? rawConfig : rawConfig.tables || [];
 
@@ -101,6 +105,7 @@ function processConfig(rawConfig: any): DataNavigatorConfig {
         }))
     }));
 
+  console.log('Processed tables:', processedTables);
   return { tables: processedTables };
 }
 
@@ -142,6 +147,7 @@ export default function DataNavigatorPage() {
           .single();
 
         if (lensError) {
+          console.error('Supabase error:', lensError);
           throw new Error(`Failed to fetch DataLens: ${lensError.message}`);
         }
 
@@ -149,11 +155,17 @@ export default function DataNavigatorPage() {
           throw new Error('DataLens not found');
         }
 
+        console.log('Raw dataLens response:', dataLens);
+
         const response = dataLens as unknown as DataLensResponse;
         
         // Log the configuration for debugging
         console.log('Raw datalens_config:', response.datalens_config);
         
+        if (!response.datalens_config) {
+          throw new Error('DataLens configuration is missing');
+        }
+
         // Validate the configuration
         const validation = validateConfig(response.datalens_config);
         if (!validation.isValid) {
